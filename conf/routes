@@ -1,0 +1,29 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index()
+
+GET     /env-var                    controllers.Application.testEnvVar()
+
+################################    UPLOAD   ################################
+POST        /upload/foto/:cpf       controllers.UploadAsyncController.fotoFileUpload(cpf: String)
+OPTIONS     /upload/foto      	    controllers.UploadAsyncController.option()
+OPTIONS     /upload/foto/:id  		controllers.UploadAsyncController.optionID(id: Long)
+
+POST        /upload/documento/:cpf  controllers.UploadAsyncController.documentoFileUpload(cpf: String)
+OPTIONS     /upload/documento      	controllers.UploadAsyncController.option()
+OPTIONS     /upload/documento/:id  	controllers.UploadAsyncController.optionID(id: Long)
+
+############    SOLICITACAO CONTROLLER      ############
+GET         /campus                  @controllers.SolicitacaoController.campusList
+GET         /estados                 @controllers.SolicitacaoController.estadoList
+POST        /solicitacao             @controllers.SolicitacaoController.saveSolicitacao
+
+OPTIONS     /solicitacao      	     controllers.SolicitacaoController.option()
+
+#GET     /pagseguro                  controllers.SolicitacaoController.goPagSeguro()
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
