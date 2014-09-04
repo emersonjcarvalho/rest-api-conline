@@ -113,7 +113,9 @@ public class ToolsUtil {
         }
 
         //Cria NOVO nome no mesmo diretorio do arquivo do Cache(MultiParti recebido pelo Play no controller)
-        String newPath = fileInCache.getParent() + "\\" + nomeFileCache;
+        //String newPath = fileInCache.getParent() + "\\" + nomeFileCache;
+        //String newPath = fileInCache.getParent() + File.separator + nomeFileCache;
+        String newPath = nomeFileCache;
         File newFileToInDiks = new File(newPath);
 
         if(newFileToInDiks.exists()){
