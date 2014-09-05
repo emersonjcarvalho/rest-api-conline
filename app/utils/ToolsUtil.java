@@ -114,9 +114,11 @@ public class ToolsUtil {
 
         //Cria NOVO nome no mesmo diretorio do arquivo do Cache(MultiParti recebido pelo Play no controller)
         //String newPath = fileInCache.getParent() + "\\" + nomeFileCache;
-        //String newPath = fileInCache.getParent() + File.separator + nomeFileCache;
-        String newPath = nomeFileCache;
+        String newPath = fileInCache.getParent() + File.separator + nomeFileCache;
+        //String newPath = nomeFileCache;
         File newFileToInDiks = new File(newPath);
+		
+		System.out.println("(>>>>>>>>>>>>  newPath: " + newPath +" <<<<<<<<<<<<<<<<<<");
 
         if(newFileToInDiks.exists()){
 
@@ -130,8 +132,7 @@ public class ToolsUtil {
         System.out.println("((((((((( >> nomeFileCache:  " + nomeFileCache);
         System.out.println("((((((((( >> fileInCache.getName:  " + fileInCache.getName());
         System.out.println("((((((((( >> fileInCache.getAbsolutePath:  " + fileInCache.getAbsolutePath());
-
-
+		System.out.println("......................................................");
         System.out.println("newFileToInDiks.getName: " + newFileToInDiks.getName());
         System.out.println("newFileToInDiks.getAbsolutePath: " + newFileToInDiks.getAbsolutePath());
 
