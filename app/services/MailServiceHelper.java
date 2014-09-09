@@ -7,7 +7,12 @@ import play.libs.Akka;
 
 import actors.mail.EmailNotificacaoMessage;
 import actors.mail.EmailOperacionalMessage;
+import utils.ConstantUtil;
+import utils.ToolsUtil;
 
+import javax.activation.DataSource;
+import javax.mail.util.ByteArrayDataSource;
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -28,7 +33,20 @@ public class MailServiceHelper {
         supervisorRef.tell(emailNotificacaoMessage, supervisorRef);
     }
 
-    public static void sendMailOperacional(EmailOperacionalMessage emailOperacionalMessage){
+    public static void sendMailOperacional(String subject, String messageBodyText, String templateHtmlMessage,
+                                           byte[] bytesAttachmentFoto, byte[] bytesAAttachmentDocumento,
+                                           String typeAttachmentFoto, String typeAttachmentDocumento,
+                                           String nomeFileFoto, String nomeFileDocumento){
+
+        DataSource dataSourceAttachmentFoto = new ByteArrayDataSource(bytesAttachmentFoto,typeAttachmentFoto);
+
+        DataSource dataSourceAttachmentDocumento = new ByteArrayDataSource(bytesAAttachmentDocumento,typeAttachmentDocumento);
+
+        EmailOperacionalMessage emailOperacionalMessage =
+                new EmailOperacionalMessage(subject, messageBodyText, templateHtmlMessage,
+                        dataSourceAttachmentFoto, dataSourceAttachmentDocumento,
+                        nomeFileFoto, nomeFileDocumento);
+
         supervisorRef.tell(emailOperacionalMessage, supervisorRef);
     }
 

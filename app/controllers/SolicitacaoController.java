@@ -1,21 +1,17 @@
 package controllers;
 
 import actors.mail.EmailNotificacaoMessage;
-import actors.mail.EmailOperacionalMessage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import models.*;
 import models.repository.*;
 
-import org.hibernate.validator.HibernateValidator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import play.cache.Cache;
-import play.data.validation.Constraints;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.libs.Json;
@@ -29,17 +25,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URL;
-import java.text.ParseException;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
 import javax.validation.*;
-import javax.xml.bind.DatatypeConverter;
-
 
 
 /**
@@ -68,13 +58,7 @@ public class SolicitacaoController extends Controller{
     public Result saveSolicitacao(){
         JsonNode jsonBodyRequest = request().body().asJson();
 
-        System.out.println("##################################################################");
-        System.out.println(jsonBodyRequest.toString());
-        System.out.println("##################################################################");
-
         // Json DataBind $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  Json DataBind ");
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JodaModule());
         Json.setObjectMapper(mapper);
@@ -83,14 +67,9 @@ public class SolicitacaoController extends Controller{
         EstudanteModelo estudanteRequest = solicitacaoRequest.estudante;
         estudanteRequest.idInstituicao = ConstantUtil.ID_INSTITUICAO;
         estudanteRequest.localEntrega = "c";
-
-        System.out.println("FIM Json DataBind <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
         // FIM Json DataBind $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
         // VALIDATE BEAN/POJO $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> VALIDATE BEAN/POJO ");
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         validator = validatorFactory.getValidator();
 
@@ -105,21 +84,18 @@ public class SolicitacaoController extends Controller{
             return badRequest(Json.toJson(ToolsUtil
                     .ConstraintViolation2ValidationErrorDTO(constraintViolations).getFieldErrors() )) ;
         }
-
-        System.out.println(" VALIDATE BEAN/POJO  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
         // FIM VALIDATE BEAN/POJO $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
         // VALIDATE FILE UPLOAD W/ SUCCESS $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> VALIDATE FILE UPLOAD W/ SUCCESS  ");
-        System.out.println("estudanteRequest.nomeArquivoFoto: " + estudanteRequest.nomeArquivoFoto);
-        System.out.println("estudanteRequest.nomeArquivoFoto: " + estudanteRequest.nomeArquivoDocumento);
+        File fileFoto = (File) Cache.get(estudanteRequest.nomeArquivoFoto);
+        //File filetFoto = ToolsUtil.getCacheWriteDisk(estudanteRequest.nomeArquivoFoto);
+        File fileDocumento = (File) Cache.get(estudanteRequest.nomeArquivoDocumento);
+        //File fileDocumento = ToolsUtil.getCacheWriteDisk(estudanteRequest.nomeArquivoDocumento);
 
-        //File filetFoto = (File) Cache.get(estudanteRequest.nomeArquivoFoto);
-        File filetFoto = ToolsUtil.getCacheWriteDisk(estudanteRequest.nomeArquivoFoto);
-        File fileDocumento = ToolsUtil.getCacheWriteDisk(estudanteRequest.nomeArquivoDocumento);
+        String typeFileFoto = ToolsUtil.getMimeTypeFromExtension(estudanteRequest.nomeArquivoFoto);
+        String typeFileDocumento = ToolsUtil.getMimeTypeFromExtension(estudanteRequest.nomeArquivoDocumento);
 
-        if(filetFoto == null){
+        if(fileFoto == null){
             ValidationErrorDTO retornoErrorDTOSolicitacao = new ValidationErrorDTO();
             retornoErrorDTOSolicitacao.addFieldError("nomeArquivoFoto", "Problema ao carregar [Foto]. Tente novamente a solicitação");
             return badRequest(Json.toJson(retornoErrorDTOSolicitacao.getFieldErrors()));
@@ -129,7 +105,7 @@ public class SolicitacaoController extends Controller{
             return badRequest(Json.toJson(retornoErrorDTOSolicitacao.getFieldErrors()));
         }
 
-        if(!filetFoto.canRead()){
+        if(!fileFoto.canRead()){
             ValidationErrorDTO retornoErrorDTOSolicitacao = new ValidationErrorDTO();
             retornoErrorDTOSolicitacao.addFieldError("nomeArquivoFoto", "Problema ao carregar [Foto]. Tente novamente a solicitação");
             return badRequest(Json.toJson(retornoErrorDTOSolicitacao.getFieldErrors()));
@@ -169,21 +145,31 @@ public class SolicitacaoController extends Controller{
         }
         //FIM Persist DB  $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-        //Put AWS S3 ********************************************************
-        StorageServiceHelper storageService = new StorageServiceHelper();
-        storageService.salvarFotoStorage(estudanteSaved.nomeArquivoFoto);
-
         //Send MAIL (AWS SES) ********************************************************
         EmailNotificacaoMessage notificacaoMessage = new EmailNotificacaoMessage(ConstantUtil.SES_ASSUNTO_CONFIRMACAO, "ERROR: Conteudo HTML nao Carregado", ConstantUtil.getHtmlMsgConfirmacao(estudanteSaved), estudanteSaved.email);
 
         String SUBJECT_OPERACIONAL = estudanteSaved.matricula + " - " + estudanteSaved.nome;
-        EmailOperacionalMessage operacionalMessage = new EmailOperacionalMessage(SUBJECT_OPERACIONAL, "ERROR: Conteudo HTML nao Carregado", ConstantUtil.getHtmlMsgOperacional(estudanteSaved), filetFoto, fileDocumento);
+        String BODY_IN_TEXT = "ERROR: Conteudo HTML nao Carregado";
 
-        MailServiceHelper.sendMailOperacional(operacionalMessage);
+        //String typeAttachmentFoto = ToolsUtil.getMimeType(filetFoto.getPath());
+
+        //EmailOperacionalMessage operacionalMessage = new EmailOperacionalMessage(SUBJECT_OPERACIONAL, "ERROR: Conteudo HTML nao Carregado", ConstantUtil.getHtmlMsgOperacional(estudanteSaved), filetFoto, fileDocumento);
+
+        byte[] bytesAttachmentFoto = ToolsUtil.getBytesFromFile(fileFoto);
+        byte[] bytesAttachmentDocumento = ToolsUtil.getBytesFromFile(fileDocumento);
+
+        //Put AWS S3 ********************************************************
+        StorageServiceHelper storageService = new StorageServiceHelper();
+        storageService.salvarFotoStorage(estudanteSaved.nomeArquivoFoto);
+
+        MailServiceHelper.sendMailOperacional(SUBJECT_OPERACIONAL, BODY_IN_TEXT, ConstantUtil.getHtmlMsgOperacional(estudanteSaved),
+                bytesAttachmentFoto, bytesAttachmentDocumento,
+                typeFileFoto, typeFileDocumento,
+                estudanteSaved.nomeArquivoFoto, estudanteSaved.nomeArquivoDocumento);
+
         MailServiceHelper.sendMailNotificacao(notificacaoMessage);
 
         //Autentic PagSeguro and Return URL to Redirect
-
         String urlPagSeguro = efetuarPagamento(getPagamentoPagSeguroPreenchido(String.valueOf(solicitacaoSaved.id), solicitacaoSaved.estudante));
 
         ObjectNode nodeRedirectPagSeguro = Json.newObject();
@@ -191,7 +177,6 @@ public class SolicitacaoController extends Controller{
 
         return ok(nodeRedirectPagSeguro);
     }
-
 
     // ########################################################################################################
     // ########################################### COMBO-LISTS    #############################################

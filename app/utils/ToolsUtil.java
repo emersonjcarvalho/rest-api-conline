@@ -8,12 +8,16 @@ import models.EstudanteModelo;
 import models.ValidationErrorDTO;
 import play.cache.Cache;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.validation.ConstraintViolation;
 import java.io.File;
 import java.io.IOException;
+import java.net.FileNameMap;
+import java.net.URLConnection;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Set;
 
 /**
@@ -88,6 +92,39 @@ public class ToolsUtil {
         return fileMimeType;
     }
 
+
+    public static String getMimeType(String pathToFile){
+
+        String mimeType = "application/octet-stream"; //se Não conseguir determinar o tipo
+
+        try {
+            Path pathAux = FileSystems.getDefault().getPath(pathToFile);
+
+            mimeType = Files.probeContentType(pathAux);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            mimeType = "application/octet-stream"; //se Não conseguir determinar o tipo
+
+            System.out.println("getMimeType - mimeType = application/octet-stream");
+        }
+
+        return mimeType;
+    }
+
+    public static String getMimeTypeFromExtension(String namFile){
+
+        FileNameMap fileNameMap = URLConnection.getFileNameMap();
+
+        String mimeType = fileNameMap.getContentTypeFor(namFile);
+
+        return mimeType;
+    }
+
+
+
+
     public static ValidationErrorDTO ConstraintViolation2ValidationErrorDTO(Set<ConstraintViolation<EstudanteModelo>> constraintViolations){
 
         ValidationErrorDTO validationErrorDTO = new ValidationErrorDTO();
@@ -141,6 +178,9 @@ public class ToolsUtil {
 
             System.out.println("$@$@$@$@$@$@$@   fileInCache.renameTo(newFileToInDiks)   $@$@$@$@$@$@$@");
 
+            int TEMPO_EXPIRACAO_ARQUIVO_CACHE = 60 * 20; //em Segundos
+            Cache.set(nomeFileCache, newFileToInDiks, TEMPO_EXPIRACAO_ARQUIVO_CACHE);
+
             /*
             if(fileInCache == null){
                 System.out.println("fileInCache == null");
@@ -183,5 +223,17 @@ public class ToolsUtil {
         }
     }
 
+    public static byte[] getBytesFromFile(File pFile){
 
+        byte[] fileInBytes = null;
+        Path path = Paths.get(pFile.getPath());
+
+        try {
+            fileInBytes = (byte[]) Files.readAllBytes(path).clone();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return fileInBytes;
+    }
 }

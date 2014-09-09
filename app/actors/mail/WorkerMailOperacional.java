@@ -3,9 +3,17 @@ package actors.mail;
 import actors.mail.EmailOperacionalMessage;
 import akka.actor.UntypedActor;
 
+import com.google.common.primitives.Bytes;
+import org.apache.commons.mail.EmailAttachment;
 import utils.ConstantUtil;
 import org.apache.commons.mail.HtmlEmail;
 import org.apache.commons.mail.EmailException;
+
+import javax.activation.DataSource;
+import javax.mail.util.ByteArrayDataSource;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 /**
  * Created by w6c on 26/07/2014.
@@ -39,8 +47,13 @@ public class WorkerMailOperacional extends UntypedActor{
                 email.setTextMsg(((EmailOperacionalMessage) message).messageBodyText);
                 email.setHtmlMsg(((EmailOperacionalMessage) message).templateHtmlMessage);
 
-                email.attach(((EmailOperacionalMessage) message).attachmentFoto);
-                email.attach(((EmailOperacionalMessage) message).attachmentDocumento);
+                //email.attach(((EmailOperacionalMessage) message).attachmentFoto);
+                email.attach( ((EmailOperacionalMessage) message).dataSourceAttachmentFoto
+                ,((EmailOperacionalMessage) message).nomeFileFoto, ((EmailOperacionalMessage) message).nomeFileFoto );
+
+                //email.attach(((EmailOperacionalMessage) message).attachmentDocumento);
+                email.attach( ((EmailOperacionalMessage) message).dataSourceAttachmentDocumento
+                        ,((EmailOperacionalMessage) message).nomeFileDocumento, ((EmailOperacionalMessage) message).nomeFileDocumento);
 
                 email.send();
 
@@ -51,6 +64,5 @@ public class WorkerMailOperacional extends UntypedActor{
             System.out.println("END WorkerMailOperacional: " + new java.util.Date());
             System.out.println("");
         }
-
     }
 }

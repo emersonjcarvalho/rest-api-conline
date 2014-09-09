@@ -25,6 +25,10 @@ public class StorageServiceHelper {
         //File fileToS3 = ToolsUtil.getCacheWriteDisk(nomeFileFotoCache);
         File fileToS3 = (File) Cache.get(nomeFileFotoCache);
 
+        System.out.println("StorageServiceHelper - salvarFotoStorage >> fileToS3.getName: " + fileToS3.getName());
+        System.out.println("StorageServiceHelper - salvarFotoStorage >> fileToS3.getPath: " + fileToS3.getPath());
+        System.out.println("StorageServiceHelper - salvarFotoStorage >> fileToS3.getAbsolutePath: " + fileToS3.getAbsolutePath());
+
         //CRIA arquivo com NOVO Nome.. O antigo é automativamente excluido pelo java.io.File
         if(fileToS3.canRead()){
 

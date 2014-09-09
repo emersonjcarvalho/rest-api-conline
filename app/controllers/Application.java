@@ -116,17 +116,19 @@ public class Application extends Controller {
 
         System.out.println(resultStr);
 
-        EmailNotificacaoMessage notificacaoMessage = new EmailNotificacaoMessage(subject, MsgTextBody, MsgHtmlBody, to);
-        EmailOperacionalMessage operacionalMessage = new EmailOperacionalMessage(subjectOperacional, MsgTextBodyOperacional, MsgHtmlBodyOperacional, attachementTest, attachementTest);
+        //ailNotificacaoMessage notificacaoMessage = new EmailNotificacaoMessage(subject, MsgTextBody, MsgHtmlBody, to);
+        //EmailOperacionalMessage operacionalMessage = new EmailOperacionalMessage(subjectOperacional, MsgTextBodyOperacional, MsgHtmlBodyOperacional, attachementTest, attachementTest);
 
 
         //supervisorRef.tell(new OperacionalMailPOJO(to), supervisorRef);
         //mailServiceHelper.sendMailOperacional(operacionalMailPOJO);
-        MailServiceHelper.sendMailOperacional(operacionalMessage);
+
+        //MailServiceHelper.sendMailOperacional(operacionalMessage);
 
         //supervisorRef.tell(notificacaoMailPOJO, supervisorRef);
         //mailServiceHelper.sendMailNotificacao(notificacaoMailPOJO);
-        MailServiceHelper.sendMailNotificacao(notificacaoMessage);
+
+        //MailServiceHelper.sendMailNotificacao(notificacaoMessage);
 
         return ok(resultStr);
     }
